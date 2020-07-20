@@ -2,7 +2,7 @@ LDSCRIPT = sam/flash.ld
 BOOTUP = sam/sam3x/source/exceptions.c sam/sam3x/source/startup_sam3x.c sam/sam3x/source/system_sam3x.c
 MCUTYPE = __SAM3X8E__
 # List all source files to be compiled; separate with space
-SOURCE_FILES=$(BOOTUP) main.c led.c delay.c adc.c can_controller.c can_interrupt.c can_transfer.c dacc.c  motor.c servo.c switch.c SysTick.c timer_counter.c uart_and_printf/uart.c uart_and_printf/printf-stdarg.c
+SOURCE_FILES=$(BOOTUP) main.c uart_and_printf/uart.c uart_and_printf/printf-stdarg.c
 
 # Feel free to ignore anything below this line
 VPATH:= $(dir $(SOURCE_FILES))
@@ -43,7 +43,7 @@ clean:
 
 .PHONY: debug
 debug: $(ELF)
-	if pgrep openocd; then pkill openocd; fi
+	if pgr openocd; then killall -s 9 openocd; fi
 	x-terminal-emulator -e openocd -f sam/openocd.cfg -c "program $(ELF) verify"
 	sleep 5
 	arm-eabi-gdb -tui -iex "target extended-remote localhost:3333" $(ELF)
@@ -51,7 +51,9 @@ debug: $(ELF)
 
 .PHONY: flash
 flash: $(ELF)
-	./sam/write_bin.sh sam/openocd.cfg $(BUILD_DIR)/main.elf
+	#./sam/write_bin.sh sam/openocd.cfg $(BUILD_DIR)/main.elf
+	if pgr openocd; then killall -s 9 openocd; fi
+	openocd -f sam/openocd.cfg -c "program ${BUILD_DIR}/main.elf verify reset exit"
 
 
 # pull in dependencies
